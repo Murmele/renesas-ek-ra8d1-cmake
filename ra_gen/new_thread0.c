@@ -1,16 +1,18 @@
 /* generated thread source file - do not edit */
 #include "new_thread0.h"
 
+#define THREAD_0_STACK_SIZE (32 * 1024)
+
 #if 1
 static StaticTask_t new_thread0_memory;
 #if defined(__ARMCC_VERSION)           /* AC6 compiler */
 static uint8_t
-    new_thread0_stack[16 * 1024] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX
+    new_thread0_stack[THREAD_0_STACK_SIZE] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX
                                                       ".stack.thread")
         BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
 #else
 static uint8_t
-    new_thread0_stack[16 * 1024] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX
+    new_thread0_stack[THREAD_0_STACK_SIZE] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX
                                                       ".stack.new_thread0")
         BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
 #endif
@@ -189,7 +191,7 @@ void new_thread0_create(void)
                     BaseType_t new_thread0_create_err = xTaskCreate(
                     #endif
                                      new_thread0_func,
-                                     (const char*) "New Thread", 1024 / 4, // In words, not bytes
+                                     (const char*) "New Thread", THREAD_0_STACK_SIZE / 4, // In words, not bytes
                                      (void*) &new_thread0_parameters, //pvParameters
                                      1,
 #if 1
