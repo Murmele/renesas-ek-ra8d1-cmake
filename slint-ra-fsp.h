@@ -44,7 +44,7 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
   slint::platform::SoftwareRenderer::RenderingRotation rotation;
   std::span<Pixel> buffer1;
   std::span<Pixel> buffer2;
-  glcdc_instance_ctrl_t m_display_ctrl;
+  glcdc_instance_ctrl_t m_display_ctrl{};
 
   Ra8d1SlintPlatform(
       slint::PhysicalSize size,
@@ -53,8 +53,10 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
       const display_cfg_t *display_cfg)
       : size(size), rotation(rotation), buffer1(buffer1), buffer2(buffer2) {
     // Initialize GLCDC
-    R_GLCDC_Open(&m_display_ctrl, display_cfg);
-    R_GLCDC_Start(&m_display_ctrl);
+    auto err = R_GLCDC_Open(&m_display_ctrl, display_cfg);
+    assert(FSP_SUCCESS == err);
+    err = R_GLCDC_Start(&m_display_ctrl);
+    assert(FSP_SUCCESS == err);
   }
 
   ~Ra8d1SlintPlatform() {
@@ -91,19 +93,12 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
         m_window->m_renderer.render(buffer1, rotated ? m_window->m_size.height
                                                      : m_window->m_size.width);
 
-        for (int i = 0; i < m_window->m_size.height * 50; i++) {
-          buffer1[i] =
-              slint::platform::Rgb565Pixel(slint::Rgb8Pixel(52, 0, 128));
-        }
-
         // Update frame buffer
-        fsp_err_t err = R_GLCDC_BufferChange(
-            &m_display_ctrl, reinterpret_cast<uint8_t *>(buffer1.data()),
-            DISPLAY_FRAME_LAYER_1);
-
-        if (err == FSP_SUCCESS) {
-          std::swap(buffer1, buffer2);
+        while (R_GLCDC_BufferChange(
+                   &m_display_ctrl, reinterpret_cast<uint8_t *>(buffer1.data()),
+                   DISPLAY_FRAME_LAYER_1) == FSP_ERR_INVALID_UPDATE_TIMING) {
         }
+        std::swap(buffer1, buffer2);
       }
     }
   }

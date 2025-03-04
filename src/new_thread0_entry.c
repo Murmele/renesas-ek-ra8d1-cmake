@@ -108,7 +108,7 @@ void new_thread0_entry(void *pvParameters)
             *p++ = (RGB_565_RED | RGB_565_GREEN | RGB_565_BLUE);
         }
     }
-
+    /*
     err = R_GLCDC_Open(&g_display0_ctrl, &g_display0_cfg);
     assert(FSP_SUCCESS == err);
 
@@ -116,13 +116,12 @@ void new_thread0_entry(void *pvParameters)
     assert(FSP_SUCCESS == err);
 
     do {
-        err =
-            R_GLCDC_BufferChange(&g_display0_ctrl,
-                                 &fb_background[0][0],
-                                 (display_frame_layer_t) 0);
-    } while(FSP_ERR_INVALID_UPDATE_TIMING == err);
-
-    //Turn on the Backlight, could do it with a PWM for dimming, this is simpler
+        err = R_GLCDC_BufferChange(&g_display0_ctrl, &fb_background[0][0],
+                                   (display_frame_layer_t)0);
+    } while (FSP_ERR_INVALID_UPDATE_TIMING == err);
+            */
+    // Turn on the Backlight, could do it with a PWM for dimming,
+    // this is simpler
     R_IOPORT_PinWrite(&g_ioport_ctrl, DISP_BLEN, BSP_IO_LEVEL_HIGH);
 
     /* TODO: add your own code here */
