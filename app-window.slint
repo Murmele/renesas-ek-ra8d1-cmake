@@ -1,0 +1,25 @@
+import { Button, VerticalBox, HorizontalBox, AboutSlint } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    in-out property<int> counter: 42;
+    callback request-increase-value();
+    background: red;
+    VerticalBox {
+        AboutSlint {}
+
+        Text {
+            text: "Counter: \{root.counter}";
+            horizontal-alignment: center;
+        }
+
+        HorizontalBox {
+            alignment: center;
+            Button {
+                text: "Increase value";
+                clicked => {
+                    root.request-increase-value();
+                }
+            }
+        }
+     }
+}

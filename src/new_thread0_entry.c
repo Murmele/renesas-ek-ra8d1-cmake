@@ -29,6 +29,8 @@ void glcdc_callback(display_callback_args_t * p_args)
 #define RGB_565_GREEN  (0x3F << 5)
 #define RGB_565_BLUE   (0x1F << 0)
 
+void slint_main();
+
 /* New Thread entry function */
 /* pvParameters contains TaskHandle_t */
 void new_thread0_entry(void *pvParameters)
@@ -124,9 +126,5 @@ void new_thread0_entry(void *pvParameters)
     R_IOPORT_PinWrite(&g_ioport_ctrl, DISP_BLEN, BSP_IO_LEVEL_HIGH);
 
     /* TODO: add your own code here */
-    while (1)
-    {
-        vTaskDelay (100);
-        touchpad_read(&g_touch_data);
-    }
+    slint_main();
 }
