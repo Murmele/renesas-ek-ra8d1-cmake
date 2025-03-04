@@ -4,9 +4,15 @@
 #if 1
 static StaticTask_t new_thread0_memory;
 #if defined(__ARMCC_VERSION)           /* AC6 compiler */
-                static uint8_t new_thread0_stack[1024] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX ".stack.thread") BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
-                #else
-static uint8_t new_thread0_stack[1024] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX ".stack.new_thread0") BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
+static uint8_t
+    new_thread0_stack[16 * 1024] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX
+                                                      ".stack.thread")
+        BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
+#else
+static uint8_t
+    new_thread0_stack[16 * 1024] BSP_PLACE_IN_SECTION(BSP_UNINIT_SECTION_PREFIX
+                                                      ".stack.new_thread0")
+        BSP_ALIGN_VARIABLE(BSP_STACK_ALIGNMENT);
 #endif
 #endif
 TaskHandle_t new_thread0;
