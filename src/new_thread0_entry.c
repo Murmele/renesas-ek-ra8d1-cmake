@@ -6,22 +6,6 @@
 
 touch_data_t g_touch_data;
 
-void glcdc_callback(display_callback_args_t * p_args)
-{
-    if(DISPLAY_EVENT_LINE_DETECTION == p_args->event) {
-        __NOP();
-    }
-    else if(DISPLAY_EVENT_GR1_UNDERFLOW == p_args->event) {
-        __BKPT(0); /*Layer 1 Underrun*/
-    }
-    else if(DISPLAY_EVENT_GR2_UNDERFLOW == p_args->event) {
-        __BKPT(0); /*Layer 2 Underrun*/
-    }
-    else { /*DISPLAY_EVENT_FRAME_END*/
-        __BKPT(0);
-    }
-}
-
 #define DISPLAY_WIDTH  480
 #define DISPLAY_HEIGHT 854
 

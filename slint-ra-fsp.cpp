@@ -37,6 +37,8 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
   std::span<Pixel> buffer1;
   std::span<Pixel> buffer2;
   glcdc_instance_ctrl_t m_display_ctrl{};
+  static SemaphoreHandle_t SemaphoreVsync;
+  static StaticSemaphore_t SemaphoreVsync_Memory;
 
   Ra8d1SlintPlatform(
       slint::PhysicalSize size,
@@ -44,6 +46,8 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
       std::span<Pixel> buffer1, std::span<Pixel> buffer2,
       const display_cfg_t *display_cfg)
       : size(size), rotation(rotation), buffer1(buffer1), buffer2(buffer2) {
+
+    SemaphoreVsync = xSemaphoreCreateBinaryStatic(&SemaphoreVsync_Memory);
 
     // Need to initialise the Touch Controller before the LCD, as only a Single
     // Reset line shared between them
@@ -130,9 +134,15 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
                          rotation == slint::platform::SoftwareRenderer::
                                          RenderingRotation::Rotate270;
 
+          xSemaphoreTake(SemaphoreVsync, portMAX_DELAY);
+
           m_window->m_renderer.render(buffer1, rotated
                                                    ? m_window->m_size.height
                                                    : m_window->m_size.width);
+
+          if (uxSemaphoreGetCount(SemaphoreVsync)) {
+            xSemaphoreTake(SemaphoreVsync, 10);
+          }
 
           // Update frame buffer
           while (R_GLCDC_BufferChange(
@@ -147,6 +157,9 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
     }
   }
 };
+
+SemaphoreHandle_t Ra8d1SlintPlatform::SemaphoreVsync;
+StaticSemaphore_t Ra8d1SlintPlatform::SemaphoreVsync_Memory;
 
 } // namespace slint::private_api
 
@@ -168,4 +181,11 @@ void slint_ra8d1_init(const SlintPlatformConfiguration &config) {
   slint::platform::set_platform(
       std::make_unique<slint::private_api::Ra8d1SlintPlatform>(
           config.size, config.rotation, buffer1, buffer2, config.display_cfg));
+}
+
+extern "C" void glcdc_callback(display_callback_args_t *p_args) {
+  BaseType_t context_switch;
+  xSemaphoreGiveFromISR(slint::private_api::Ra8d1SlintPlatform::SemaphoreVsync,
+                        &context_switch);
+  portYIELD_FROM_ISR(context_switch);
 }
