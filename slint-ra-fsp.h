@@ -108,7 +108,7 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
       slint::platform::update_timers_and_animations();
 
       if (m_window) {
-
+        float f = m_window->window().scale_factor();
         touch_data_t touch_data{};
         touchpad_read(&touch_data);
         if (touch_data.state == TOUCH_STATE_PRESSED) {
@@ -124,16 +124,16 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
                   ? h2 - h2 * (int(touch_data.point.y) - 855) / (1221 - 855)
                   : h2 + h2 * touch_data.point.y / 375;
           m_window->window().dispatch_pointer_move_event(
-              slint::LogicalPosition({last_touch_x, last_touch_y}));
+              slint::LogicalPosition({last_touch_x / f, last_touch_y / f}));
           if (!touch_down) {
             m_window->window().dispatch_pointer_press_event(
-                slint::LogicalPosition({last_touch_x, last_touch_y}),
+                slint::LogicalPosition({last_touch_x / f, last_touch_y / f}),
                 slint::PointerEventButton::Left);
           }
           touch_down = true;
         } else if (touch_down) {
           m_window->window().dispatch_pointer_release_event(
-              slint::LogicalPosition({last_touch_x, last_touch_y}),
+              slint::LogicalPosition({last_touch_x / f, last_touch_y / f}),
               slint::PointerEventButton::Left);
           m_window->window().dispatch_pointer_exit_event();
           touch_down = false;
