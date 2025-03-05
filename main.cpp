@@ -1,7 +1,7 @@
 
-#include "app-window.h"
 #include "bsp_api.h"
 #include "common_data.h"
+#include "desktop_window.h"
 #include "slint-ra-fsp.h"
 #include "slint.h"
 
@@ -19,7 +19,7 @@ extern "C" void slint_main() {
       slint::platform::SoftwareRenderer::RenderingRotation::Rotate90;
   slint_ra8d1_init(config);
 
-  auto ui = AppWindow::create();
+  auto ui = MainWindow::create();
   ui->show();
   slint::run_event_loop();
 }
