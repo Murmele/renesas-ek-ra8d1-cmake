@@ -30,21 +30,21 @@ struct Ra8d1WindowAdapter : public slint::platform::WindowAdapter {
 
 struct Ra8d1SlintPlatform : public slint::platform::Platform {
   using Pixel = slint::platform::Rgb565Pixel;
+  using RenderingRotation =
+      slint::platform::SoftwareRenderer::RenderingRotation;
 
   Ra8d1WindowAdapter *m_window = nullptr;
   const slint::PhysicalSize size;
-  slint::platform::SoftwareRenderer::RenderingRotation rotation;
+  RenderingRotation rotation;
   std::span<Pixel> buffer1;
   std::span<Pixel> buffer2;
   glcdc_instance_ctrl_t m_display_ctrl{};
   static SemaphoreHandle_t SemaphoreVsync;
   static StaticSemaphore_t SemaphoreVsync_Memory;
 
-  Ra8d1SlintPlatform(
-      slint::PhysicalSize size,
-      slint::platform::SoftwareRenderer::RenderingRotation rotation,
-      std::span<Pixel> buffer1, std::span<Pixel> buffer2,
-      const display_cfg_t *display_cfg)
+  Ra8d1SlintPlatform(slint::PhysicalSize size, RenderingRotation rotation,
+                     std::span<Pixel> buffer1, std::span<Pixel> buffer2,
+                     const display_cfg_t *display_cfg)
       : size(size), rotation(rotation), buffer1(buffer1), buffer2(buffer2) {
 
     SemaphoreVsync = xSemaphoreCreateBinaryStatic(&SemaphoreVsync_Memory);
@@ -78,7 +78,12 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
 
   std::unique_ptr<slint::platform::WindowAdapter>
   create_window_adapter() override {
-    auto w = std::make_unique<Ra8d1WindowAdapter>(size);
+    slint::PhysicalSize rotated_size = size;
+    if (rotation == RenderingRotation::Rotate90 ||
+        rotation == RenderingRotation::Rotate270) {
+      std::swap(rotated_size.height, rotated_size.width);
+    }
+    auto w = std::make_unique<Ra8d1WindowAdapter>(rotated_size);
     w->m_renderer.set_rendering_rotation(rotation);
     m_window = w.get();
     return w;
@@ -104,14 +109,34 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
           // I manually measured on the device that the range are:
           // for x: 370->62
           // for y: 1221->855 (middle) 0->375 | the screen is split
-          last_touch_x = m_window->m_size.width -
-                         m_window->m_size.width *
-                             (int(touch_data.point.x) - 62) / (370 - 62);
-          int h2 = m_window->m_size.height / 2;
+          last_touch_x = size.width - size.width *
+                                          (int(touch_data.point.x) - 62) /
+                                          (370 - 62);
+          int h2 = size.height / 2;
           last_touch_y =
               touch_data.point.y > 375
                   ? h2 - h2 * (int(touch_data.point.y) - 855) / (1221 - 855)
                   : h2 + h2 * touch_data.point.y / 375;
+
+          switch (rotation) {
+          case RenderingRotation::Rotate90:
+            std::swap(last_touch_x, last_touch_y);
+            last_touch_y = size.width - last_touch_y;
+
+            break;
+          case RenderingRotation::Rotate270:
+            std::swap(last_touch_x, last_touch_y);
+            last_touch_x = size.height - last_touch_x;
+
+            break;
+          case RenderingRotation::Rotate180:
+            last_touch_x = size.width - last_touch_x;
+            last_touch_y = size.height - last_touch_y;
+            break;
+          default:
+            break;
+          }
+
           m_window->window().dispatch_pointer_move_event(
               slint::LogicalPosition({last_touch_x / f, last_touch_y / f}));
           if (!touch_down) {
@@ -129,16 +154,9 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
         }
 
         if (std::exchange(m_window->needs_redraw, false)) {
-          auto rotated = rotation == slint::platform::SoftwareRenderer::
-                                         RenderingRotation::Rotate90 ||
-                         rotation == slint::platform::SoftwareRenderer::
-                                         RenderingRotation::Rotate270;
-
           xSemaphoreTake(SemaphoreVsync, portMAX_DELAY);
 
-          m_window->m_renderer.render(buffer1, rotated
-                                                   ? m_window->m_size.height
-                                                   : m_window->m_size.width);
+          m_window->m_renderer.render(buffer1, size.width);
 
           if (uxSemaphoreGetCount(SemaphoreVsync)) {
             xSemaphoreTake(SemaphoreVsync, 10);

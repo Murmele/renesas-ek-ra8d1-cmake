@@ -7,7 +7,7 @@
 #include <slint-platform.h>
 
 struct SlintPlatformConfiguration {
-  /// The size of the screen in pixels.
+  /// The size of the screen in pixels (not rotated)
   slint::PhysicalSize size;
   /// Frame buffer pointer. Must be aligned properly for the GLCDC
   void *framebuffer;

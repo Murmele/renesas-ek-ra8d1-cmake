@@ -2,6 +2,16 @@ import { Button, VerticalBox, HorizontalBox, AboutSlint } from "std-widgets.slin
 
 export component AppWindow inherits Window {
     in-out property<int> counter: 42;
+    ta := TouchArea {
+
+    }
+
+    background: gray;
+
+    Rectangle {
+        background: yellow;
+    }
+
     VerticalBox {
         AboutSlint {}
 
@@ -20,5 +30,13 @@ export component AppWindow inherits Window {
                 }
             }
         }
+    }
+
+    Rectangle {
+        width: 5px;
+        height: 5px;
+        background: ta.pressed ? red : blue;
+        x: ta.mouse-x - self.width/2;
+        y: ta.mouse-y - self.height/2;
     }
 }

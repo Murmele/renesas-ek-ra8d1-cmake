@@ -15,6 +15,8 @@ extern "C" void slint_main() {
   config.framebuffer = fb_background;
   config.framebuffer_size = sizeof(fb_background);
   config.display_cfg = &g_display0_cfg;
+  config.rotation =
+      slint::platform::SoftwareRenderer::RenderingRotation::Rotate90;
   slint_ra8d1_init(config);
 
   auto ui = AppWindow::create();
