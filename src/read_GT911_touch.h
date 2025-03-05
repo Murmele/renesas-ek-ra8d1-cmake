@@ -1,6 +1,10 @@
 #ifndef READ_GT911_TOUCH_H_
 #define READ_GT911_TOUCH_H_
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 typedef enum {
     TOUCH_STATE_RELEASED = 0,
     TOUCH_STATE_PRESSED
@@ -17,5 +21,9 @@ typedef struct {
 } touch_data_t;
 
 void touchpad_read(touch_data_t * data);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* READ_GT911_TOUCH_H_ */

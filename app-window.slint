@@ -2,7 +2,17 @@ import { Button, VerticalBox, HorizontalBox, AboutSlint } from "std-widgets.slin
 
 export component AppWindow inherits Window {
     in-out property<int> counter: 42;
-    callback request-increase-value();
+
+    //background: red.mix(blue, sin(animation-tick() * 1turn / 1s));
+
+
+    ta := TouchArea {
+        pointer-event(event) => {
+            r.x = self.mouse-x - r.width/2;
+            r.y = self.mouse-y - r.height/2;
+        }
+     }
+
     VerticalBox {
         AboutSlint {}
 
@@ -10,15 +20,25 @@ export component AppWindow inherits Window {
             text: "Counter: \{root.counter}";
             horizontal-alignment: center;
         }
+        t := Text {
+            text: "X: " + ta.mouse-x / 1px + ", Y: " + ta.mouse-y / 1px;
+        }
 
         HorizontalBox {
             alignment: center;
             Button {
                 text: "Increase value";
                 clicked => {
-                    root.request-increase-value();
+                    counter += 1;
                 }
             }
         }
      }
+
+     r := Rectangle {
+        width: 5px;
+        height: 5px;
+        background: red;
+     }
+
 }

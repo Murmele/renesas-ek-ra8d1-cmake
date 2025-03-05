@@ -1,6 +1,10 @@
 #ifndef __TOUCH_GT911_H
 #define __TOUCH_GT911_H
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 typedef struct{
     int32_t x;
     int32_t y;
@@ -22,4 +26,9 @@ typedef struct{
 fsp_err_t enable_ts(rm_comms_ctrl_t * p_api_i2c_ctrl);
 fsp_err_t init_ts(rm_comms_ctrl_t * p_api_ctrl);
 fsp_err_t i2c_cb_wait(void);
+
+#if defined(__cplusplus)
+}
+#endif
+
 #endif

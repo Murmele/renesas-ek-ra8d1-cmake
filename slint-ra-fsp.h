@@ -6,7 +6,14 @@
 #include <slint-platform.h>
 #include <type_traits>
 
+#include "bsp_api.h"
 #include "r_glcdc.h"
+#include "read_GT911_touch.h"
+#include "touch_GT911.h"
+// FIXME: this shouldn't be declared here.
+extern const rm_comms_instance_t g_comms_i2c_device0;
+extern rm_comms_i2c_instance_ctrl_t g_comms_i2c_device0_ctrl;
+extern const rm_comms_cfg_t g_comms_i2c_device0_cfg;
 
 struct SlintPlatformConfiguration {
   /// The size of the screen in pixels.
@@ -52,8 +59,22 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
       std::span<Pixel> buffer1, std::span<Pixel> buffer2,
       const display_cfg_t *display_cfg)
       : size(size), rotation(rotation), buffer1(buffer1), buffer2(buffer2) {
+
+    // Need to initialise the Touch Controller before the LCD, as only a Single
+    // Reset line shared between them
+
+    auto err =
+        RM_COMMS_I2C_Open(&g_comms_i2c_device0_ctrl, &g_comms_i2c_device0_cfg);
+    assert(FSP_SUCCESS == err);
+
+    err = init_ts(&g_comms_i2c_device0_ctrl);
+    assert(FSP_SUCCESS == err);
+
+    err = enable_ts(&g_comms_i2c_device0_ctrl);
+    assert(FSP_SUCCESS == err);
+
     // Initialize GLCDC
-    auto err = R_GLCDC_Open(&m_display_ctrl, display_cfg);
+    err = R_GLCDC_Open(&m_display_ctrl, display_cfg);
     assert(FSP_SUCCESS == err);
     err = R_GLCDC_Start(&m_display_ctrl);
     assert(FSP_SUCCESS == err);
@@ -74,32 +95,70 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
     return w;
   }
 
-  static inline std::atomic<uint32_t> g_gui_time_ms = {};
   std::chrono::milliseconds duration_since_start() override {
-    return std::chrono::milliseconds(g_gui_time_ms.load());
+    return std::chrono::milliseconds(xTaskGetTickCount() * portTICK_PERIOD_MS);
   }
 
   void run_event_loop() override {
+    float last_touch_x = 0;
+    float last_touch_y = 0;
+    bool touch_down = false;
+
     while (true) {
       slint::platform::update_timers_and_animations();
 
-      if (m_window && std::exchange(m_window->needs_redraw, false)) {
-        auto rotated =
-            rotation == slint::platform::SoftwareRenderer::RenderingRotation::
-                            Rotate90 ||
-            rotation ==
-                slint::platform::SoftwareRenderer::RenderingRotation::Rotate270;
+      if (m_window) {
 
-        m_window->m_renderer.render(buffer1, rotated ? m_window->m_size.height
-                                                     : m_window->m_size.width);
-
-        // Update frame buffer
-        while (R_GLCDC_BufferChange(
-                   &m_display_ctrl, reinterpret_cast<uint8_t *>(buffer1.data()),
-                   DISPLAY_FRAME_LAYER_1) == FSP_ERR_INVALID_UPDATE_TIMING) {
+        touch_data_t touch_data{};
+        touchpad_read(&touch_data);
+        if (touch_data.state == TOUCH_STATE_PRESSED) {
+          // I manually measured on the device that the range are:
+          // for x: 370->62
+          // for y: 1221->855 (middle) 0->375 | the screen is split
+          last_touch_x = m_window->m_size.width -
+                         m_window->m_size.width *
+                             (int(touch_data.point.x) - 62) / (370 - 62);
+          int h2 = m_window->m_size.height / 2;
+          last_touch_y =
+              touch_data.point.y > 375
+                  ? h2 - h2 * (int(touch_data.point.y) - 855) / (1221 - 855)
+                  : h2 + h2 * touch_data.point.y / 375;
+          m_window->window().dispatch_pointer_move_event(
+              slint::LogicalPosition({last_touch_x, last_touch_y}));
+          if (!touch_down) {
+            m_window->window().dispatch_pointer_press_event(
+                slint::LogicalPosition({last_touch_x, last_touch_y}),
+                slint::PointerEventButton::Left);
+          }
+          touch_down = true;
+        } else if (touch_down) {
+          m_window->window().dispatch_pointer_release_event(
+              slint::LogicalPosition({last_touch_x, last_touch_y}),
+              slint::PointerEventButton::Left);
+          m_window->window().dispatch_pointer_exit_event();
+          touch_down = false;
         }
-        std::swap(buffer1, buffer2);
+
+        if (std::exchange(m_window->needs_redraw, false)) {
+          auto rotated = rotation == slint::platform::SoftwareRenderer::
+                                         RenderingRotation::Rotate90 ||
+                         rotation == slint::platform::SoftwareRenderer::
+                                         RenderingRotation::Rotate270;
+
+          m_window->m_renderer.render(buffer1, rotated
+                                                   ? m_window->m_size.height
+                                                   : m_window->m_size.width);
+
+          // Update frame buffer
+          while (R_GLCDC_BufferChange(
+                     &m_display_ctrl,
+                     reinterpret_cast<uint8_t *>(buffer1.data()),
+                     DISPLAY_FRAME_LAYER_1) == FSP_ERR_INVALID_UPDATE_TIMING) {
+          }
+          std::swap(buffer1, buffer2);
+        }
       }
+      // TODO! Yield
     }
   }
 };

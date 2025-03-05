@@ -72,19 +72,20 @@ void new_thread0_entry(void *pvParameters)
             xSemaphoreCreateRecursiveMutexStatic(p_extend->p_bus_recursive_mutex->p_mutex_memory);
     }
 #endif
-
     /* Need to initialise the Touch Controller before the LCD, as only a Single Reset line shared between them */
-    err = RM_COMMS_I2C_Open(&g_comms_i2c_device0_ctrl, &g_comms_i2c_device0_cfg);
-    assert(FSP_SUCCESS == err);
+    /*
+        err =
+            RM_COMMS_I2C_Open(&g_comms_i2c_device0_ctrl,
+       &g_comms_i2c_device0_cfg); assert(FSP_SUCCESS == err);
 
-    err = init_ts(&g_comms_i2c_device0_ctrl);
-    assert(FSP_SUCCESS == err);
+        err = init_ts(&g_comms_i2c_device0_ctrl);
+        assert(FSP_SUCCESS == err);
 
-    err = enable_ts(&g_comms_i2c_device0_ctrl);
-    assert(FSP_SUCCESS == err);
+        err = enable_ts(&g_comms_i2c_device0_ctrl);
+        assert(FSP_SUCCESS == err);
+        */
 
-    for (j = 0; j < DISPLAY_HEIGHT/2; j++)
-    {
+    for (j = 0; j < DISPLAY_HEIGHT / 2; j++) {
         for (i = 0; i < DISPLAY_WIDTH/2; i++)
         {
             *p++ = RGB_565_BLUE;
