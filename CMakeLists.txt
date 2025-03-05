@@ -68,6 +68,7 @@ file(GLOB FSP_SOURCES
 add_executable(${PROJECT_NAME}.elf
     ${FSP_SOURCES}
 
+    slint-ra-fsp.cpp
     main.cpp
 )
 
