@@ -1,7 +1,7 @@
 
 #include "bsp_api.h"
 #include "common_data.h"
-#include "desktop_window.h"
+#include "printerdemo.h"
 #include "slint-ra-fsp.h"
 #include "slint.h"
 
@@ -16,7 +16,7 @@ extern "C" void slint_main() {
   config.framebuffer_size = sizeof(fb_background);
   config.display_cfg = &g_display0_cfg;
   config.rotation =
-      slint::platform::SoftwareRenderer::RenderingRotation::Rotate90;
+      slint::platform::SoftwareRenderer::RenderingRotation::Rotate270;
   slint_ra8d1_init(config);
 
   auto ui = MainWindow::create();

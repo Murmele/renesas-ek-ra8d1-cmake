@@ -73,6 +73,6 @@ add_executable(${PROJECT_NAME}.elf
 )
 
 target_link_libraries(${PROJECT_NAME}.elf PRIVATE Slint::Slint)
-slint_target_sources(${PROJECT_NAME}.elf /home/olivier/slint/demos/energy-monitor/ui/desktop_window.slint)
+slint_target_sources(${PROJECT_NAME}.elf ui/printerdemo.slint)
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES SLINT_EMBED_RESOURCES "embed-for-software-renderer-with-sdf")
-set_target_properties(${PROJECT_NAME}.elf PROPERTIES SLINT_SCALE_FACTOR "1.5")
+set_target_properties(${PROJECT_NAME}.elf PROPERTIES SLINT_SCALE_FACTOR "1.75")
