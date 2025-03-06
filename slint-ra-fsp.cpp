@@ -109,25 +109,24 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
           // I manually measured on the device that the range are:
           // for x: 370->62
           // for y: 1221->855 (middle) 0->375 | the screen is split
-          last_touch_x = size.width - size.width *
-                                          (int(touch_data.point.x) - 62) /
-                                          (370 - 62);
+          last_touch_x = (size.width - 1) - (size.width - 1) *
+                                                (int(touch_data.point.x) - 62) /
+                                                (370 - 62);
           int h2 = size.height / 2;
-          last_touch_y =
-              touch_data.point.y > 375
-                  ? h2 - h2 * (int(touch_data.point.y) - 855) / (1221 - 855)
-                  : h2 + h2 * touch_data.point.y / 375;
+          last_touch_y = touch_data.point.y > 375
+                             ? (h2 - 1) - (h2 - 1) *
+                                              (int(touch_data.point.y) - 855) /
+                                              (1221 - 855)
+                             : h2 + (h2 - 1) * touch_data.point.y / 375;
 
           switch (rotation) {
           case RenderingRotation::Rotate90:
             std::swap(last_touch_x, last_touch_y);
             last_touch_y = size.width - last_touch_y;
-
             break;
           case RenderingRotation::Rotate270:
             std::swap(last_touch_x, last_touch_y);
             last_touch_x = size.height - last_touch_x;
-
             break;
           case RenderingRotation::Rotate180:
             last_touch_x = size.width - last_touch_x;
