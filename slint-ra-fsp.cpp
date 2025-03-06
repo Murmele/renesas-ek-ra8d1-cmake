@@ -104,6 +104,8 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
       if (m_window) {
         float f = m_window->window().scale_factor();
         touch_data_t touch_data{};
+        // Just set some invalid value in case the driver is not ready
+        touch_data.state = static_cast<touch_state_t>(0xf);
         touchpad_read(&touch_data);
         if (touch_data.state == TOUCH_STATE_PRESSED) {
           // I manually measured on the device that the range are:
@@ -144,7 +146,7 @@ struct Ra8d1SlintPlatform : public slint::platform::Platform {
                 slint::PointerEventButton::Left);
           }
           touch_down = true;
-        } else if (touch_down) {
+        } else if (touch_data.state == TOUCH_STATE_RELEASED && touch_down) {
           m_window->window().dispatch_pointer_release_event(
               slint::LogicalPosition({last_touch_x / f, last_touch_y / f}),
               slint::PointerEventButton::Left);
