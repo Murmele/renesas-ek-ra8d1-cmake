@@ -3,13 +3,18 @@
 ## Build
 
 ```bash
+# https://www.segger.com/downloads/jlink/
 JLinkGDBServer -Device R7FA8D1BH -if SWD -speed 4000
 
 # in another tab:
-mkdir build
+cmake -S . -B build \
+  -DCMAKE_TOOLCHAIN_FILE=toolchain-arm-none-eabi.cmake \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cd build
 cmake ..
-make -j24  && gdb-multiarch ra8d1_slint.elf -ex "target remote localhost:2331" -ex "load" -ex "monitor reset" -ex "continue"
+make -j24
+# Fedora: `gdb`, Debian: `gdb-multiarch`
+gdb-multiarch ra8d1_slint.elf -ex "target remote localhost:2331" -ex "load" -ex "monitor reset" -ex "continue"
 ```
 ## Prerequisites
 
@@ -18,7 +23,11 @@ make -j24  && gdb-multiarch ra8d1_slint.elf -ex "target remote localhost:2331" -
 rustup target install thumbv8m.main-none-eabihf
 
 # GNU Arm toolchain, e.g.:
+# Debian:
+# TODO: libnewlib-arm-none-eabi might be required as well
 sudo apt install gdb-multiarch gcc-arm-none-eabi
+# Fedora:
+sudo dnf install arm-none-eabi-gcc-cs arm-none-eabi-gcc-cs-c++ arm-none-eabi-newlib
 ```
 
 ## How Was This Made?

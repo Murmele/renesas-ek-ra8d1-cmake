@@ -17,12 +17,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Slint)
 
-
-# Set compiler
-set(CMAKE_C_COMPILER arm-none-eabi-gcc)
-set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
-set(CMAKE_ASM_COMPILER arm-none-eabi-gcc)
-
 # Compiler flags
 set(LINKER_SCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/script/fsp.lld)
 set(CPU_FLAGS "-mcpu=cortex-m85 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16")
